@@ -27,8 +27,11 @@ function decodeBase64Url(encoded) {
 
 /**
  * Создание шаринговой ссылки на палитру
+ * @param {Array} colors - массив цветов
+ * @param {string} name - название палитры
+ * @param {string} currentPath - текущий путь роутера (например, '/advanced')
  */
-export function createShareableLink(colors, name = '') {
+export function createShareableLink(colors, name = '', currentPath = '') {
   if (!colors || colors.length === 0) {
     console.error('Cannot create shareable link: colors array is empty');
     return '';
@@ -41,7 +44,18 @@ export function createShareableLink(colors, name = '') {
     const basePath = import.meta.env.BASE_URL || '/';
     // Убираем trailing slash если он есть, кроме корня
     const cleanBasePath = basePath === '/' ? '/' : basePath.replace(/\/$/, '');
-    const baseUrl = window.location.origin + cleanBasePath;
+    
+    // Сохраняем текущий путь роутера в ссылке
+    const targetPath = currentPath || window.location.pathname;
+    // Убираем base path из текущего пути, если он там есть
+    const relativePath = targetPath.startsWith(cleanBasePath) 
+      ? targetPath.slice(cleanBasePath.length) 
+      : targetPath;
+    
+    // Убираем начальный слэш, если он есть (кроме корня)
+    const cleanRelativePath = relativePath === '/' ? '' : relativePath;
+    
+    const baseUrl = window.location.origin + cleanBasePath + cleanRelativePath;
     return `${baseUrl}?palette=${encodeURIComponent(encoded)}`;
   } catch (error) {
     console.error('Failed to create shareable link:', error);

@@ -26,5 +26,24 @@ const router = createRouter({
   routes,
 });
 
+// Обработка редиректа из 404.html
+router.beforeEach((to, from, next) => {
+  // Если есть параметр _path в query, это редирект из 404.html
+  const pathParam = to.query._path;
+  if (pathParam && typeof pathParam === 'string') {
+    // Удаляем _path из query и редиректим на правильный путь
+    const targetPath = decodeURIComponent(pathParam);
+    const newQuery = { ...to.query };
+    delete newQuery._path;
+    next({
+      path: targetPath,
+      query: newQuery,
+      replace: true,
+    });
+  } else {
+    next();
+  }
+});
+
 export default router;
 

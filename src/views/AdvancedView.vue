@@ -153,7 +153,9 @@ import {
   exportToCSSCode,
 } from '../utils/exportUtils';
 import { createShareableLink, decodeShareableLink } from '../utils/shareUtils';
+import { useRoute } from 'vue-router';
 
+const route = useRoute();
 const baseColor = ref('#667eea');
 const paletteType = ref('analogous');
 const mood = ref('calm');
@@ -231,7 +233,9 @@ const createShareLink = () => {
     return;
   }
   
-  const link = createShareableLink(currentPalette.value, paletteName.value);
+  // Получаем текущий путь роутера
+  const currentPath = route.path;
+  const link = createShareableLink(currentPalette.value, paletteName.value, currentPath);
   if (link) {
     shareLink.value = link;
     showNotification.value = true;
@@ -290,8 +294,10 @@ const loadInitialPalette = () => {
     if (sharedPalette.name) {
       paletteName.value = sharedPalette.name;
     }
-    // Очищаем URL от параметров
-    window.history.replaceState({}, document.title, window.location.pathname);
+    // Очищаем URL от query параметров, но сохраняем путь
+    const currentPath = route.path;
+    const newUrl = window.location.origin + (import.meta.env.BASE_URL || '/') + currentPath.replace(/^\//, '');
+    window.history.replaceState({}, document.title, newUrl);
   } else {
     generateAdvancedPalette();
   }

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palette Generator</title>
+    <script>
+      // GitHub Pages 404 handler для SPA
+      // Сохраняем весь путь и query параметры при редиректе
+      const path = window.location.pathname;
+      const search = window.location.search;
+      const hash = window.location.hash;
+      
+      // Определяем base path (название репозитория)
+      const pathSegments = path.split('/').filter(Boolean);
+      let basePath = '/';
+      
+      // Если есть сегменты и первый не index.html, это подпапка репозитория
+      if (pathSegments.length > 0 && pathSegments[0] !== 'index.html') {
+        basePath = '/' + pathSegments[0] + '/';
+      }
+      
+      // Сохраняем оригинальный путь (без base path) в query параметре
+      let redirectPath = basePath + 'index.html';
+      const originalPath = pathSegments.length > 1 
+        ? '/' + pathSegments.slice(1).join('/')
+        : '/';
+      
+      // Добавляем _path параметр для восстановления маршрута
+      const separator = search ? '&' : '?';
+      redirectPath += search + separator + '_path=' + encodeURIComponent(originalPath) + hash;
+      
+      window.location.replace(redirectPath);
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>
+

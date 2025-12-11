@@ -58,7 +58,9 @@ import PalettePreview from '../components/PalettePreview.vue';
 import { generateRandomHarmoniousPalette } from '../utils/colorUtils';
 import { storage } from '../utils/storage';
 import { decodeShareableLink, createShareableLink } from '../utils/shareUtils';
+import { useRoute } from 'vue-router';
 
+const route = useRoute();
 const colorCount = ref(5);
 const displayFormat = ref('hex');
 const currentPalette = ref([]);
@@ -112,7 +114,8 @@ const createShareLink = async () => {
     return;
   }
   
-  const link = createShareableLink(currentPalette.value, paletteName.value || 'palette');
+  const currentPath = route.path;
+  const link = createShareableLink(currentPalette.value, paletteName.value || 'palette', currentPath);
   if (link) {
     try {
       await navigator.clipboard.writeText(link);
@@ -147,8 +150,13 @@ const loadPalette = () => {
     if (sharedPalette.name) {
       paletteName.value = sharedPalette.name;
     }
-    // Очищаем URL от параметров
-    window.history.replaceState({}, document.title, window.location.pathname);
+    // Очищаем URL от query параметров, но сохраняем путь
+    const currentPath = route.path;
+    const basePath = import.meta.env.BASE_URL || '/';
+    const cleanPath = currentPath.startsWith(basePath) 
+      ? currentPath 
+      : basePath + currentPath.replace(/^\//, '');
+    window.history.replaceState({}, document.title, cleanPath);
   } else {
     currentPalette.value = storage.load('currentPalette', []);
     pinnedColors.value = storage.load('pinnedColors', []);
