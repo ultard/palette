@@ -30,6 +30,14 @@
         placeholder="Поиск по названию или тегам..."
         class="search-input"
       />
+      <div class="filter-controls">
+        <button
+          @click="showOnlyFavorites = !showOnlyFavorites"
+          :class="['favorite-filter-btn', { active: showOnlyFavorites }]"
+        >
+          ⭐ {{ showOnlyFavorites ? 'Все палитры' : 'Только избранные' }}
+        </button>
+      </div>
       <div class="filter-buttons">
         <button
           v-for="tag in allTags"
@@ -47,9 +55,13 @@
         v-for="palette in filteredPalettes"
         :key="palette.id"
         class="palette-card"
+        :class="{ 'favorite-card': palette.favorite }"
       >
         <div class="palette-header">
-          <h3>{{ palette.name }}</h3>
+          <h3>
+            <span v-if="palette.favorite" class="favorite-badge">⭐</span>
+            {{ palette.name }}
+          </h3>
           <div class="palette-actions">
             <button @click="editPalette(palette)" class="action-btn">✏️</button>
             <button @click="deletePalette(palette.id)" class="action-btn">🗑️</button>
@@ -154,6 +166,7 @@ const router = useRouter();
 const palettes = ref([]);
 const searchQuery = ref('');
 const selectedTags = ref([]);
+const showOnlyFavorites = ref(false);
 const newPaletteName = ref('');
 const newPaletteTags = ref('');
 const editingPalette = ref(null);
@@ -173,6 +186,11 @@ const allTags = computed(() => {
 
 const filteredPalettes = computed(() => {
   let filtered = palettes.value;
+
+  // Фильтр по избранным
+  if (showOnlyFavorites.value) {
+    filtered = filtered.filter((palette) => palette.favorite);
+  }
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
@@ -432,6 +450,37 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
+.filter-controls {
+  margin-bottom: 12px;
+}
+
+.favorite-filter-btn {
+  padding: 8px 16px;
+  border: 2px solid #ffd700;
+  border-radius: 20px;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.favorite-filter-btn:hover {
+  background: #fff9e6;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.favorite-filter-btn.active {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #333;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+}
+
 .filter-buttons {
   display: flex;
   gap: 8px;
@@ -470,11 +519,38 @@ onMounted(() => {
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid transparent;
+  position: relative;
 }
 
 .palette-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.palette-card.favorite-card {
+  background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+  border: 2px solid #ffd700;
+  box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3);
+  position: relative;
+}
+
+.palette-card.favorite-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffd700, #ffed4e, #ffd700);
+  z-index: -1;
+  opacity: 0.3;
+}
+
+.palette-card.favorite-card:hover {
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+  transform: translateY(-6px);
 }
 
 .palette-header {
@@ -488,6 +564,26 @@ onMounted(() => {
   font-size: 18px;
   color: #333;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.favorite-badge {
+  font-size: 20px;
+  animation: pulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.8));
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
 }
 
 .palette-actions {
@@ -509,7 +605,18 @@ onMounted(() => {
 }
 
 .action-btn.favorited {
-  filter: none;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+  transform: scale(1.1);
+  animation: starGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes starGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1));
+  }
 }
 
 .palette-colors {
